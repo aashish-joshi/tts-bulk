@@ -81,7 +81,7 @@ func main() {
 	}
 
 	// Limit the number of concurrently running goroutines
-	const maxGoroutines = 5
+	const maxGoroutines = 3
 	guard := make(chan struct{}, maxGoroutines)
 	var wg sync.WaitGroup
 
@@ -106,7 +106,7 @@ func main() {
 			if err != nil {
 				fmt.Printf("Could not generate TTS for row %v - %v: %v\n", i, label, err)
 			} else {
-				fmt.Printf("TTS generated for row %v\n", i)
+				fmt.Printf("TTS generated for %v\n", label)
 			}
 
 			// Release a slot in the goroutine pool
@@ -127,7 +127,6 @@ func generateTTSAndSave(ctx context.Context, dg *api.Client, script string, opti
 
 	// Wait for 1 second before returning
 	// This is to avoid rate limiting
-
 	time.Sleep(time.Second)
 
 	return nil
