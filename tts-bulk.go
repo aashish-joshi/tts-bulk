@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"encoding/csv"
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -24,6 +26,29 @@ func checkDeepgramKey() error {
 
 func main() {
 
+	var dgContainer, dgEncoding string
+
+	// Define the commandline flags
+	dgModelName := flag.String("model", "aura-asteria-en", "Deepgram model name. Defaults to aura-asteria-en")
+	dgFileFormat := flag.String("format", "mp3", "File format for the generated audio files. Defaults to mp3")
+	outputFolder := flag.String("output", "audio", "Output folder for the generated audio files.")
+	csvLocation := flag.String("csv", "scripts.csv", "Location of the CSV file containing the scripts to convert to audio.")
+	// parse the commandline flags
+	flag.Parse()
+
+	// If the DG file format is neither wav nor mp3, raise error.
+	if strings.ToLower(*dgFileFormat) != "wav" && strings.ToLower(*dgFileFormat) != "mp3" {
+		fmt.Println("Invalid file format. Only wav and mp3 are supported.")
+		return
+	}
+
+	if strings.ToLower(*dgFileFormat) == "wav" {
+		dgContainer = "wav"
+		dgEncoding = "linear16"
+	} else {
+		dgContainer = ""
+		dgEncoding = "mp3"
+	}
 	// First check if the Deepgram API key is set
 	if dgErr := checkDeepgramKey(); dgErr != nil {
 		fmt.Println(dgErr)
@@ -38,7 +63,9 @@ func main() {
 
 	// set the Transcription options
 	options := &interfaces.SpeakOptions{
-		Model: "aura-asteria-en",
+		Model:     strings.ToLower(*dgModelName),
+		Container: dgContainer,
+		Encoding:  dgEncoding,
 	}
 
 	// create a Deepgram client
@@ -46,14 +73,13 @@ func main() {
 	dg := api.New(c)
 
 	// Check if the file exists
-	fileName := "scripts.csv"
-	if _, err := os.Stat(fileName); os.IsNotExist(err) {
-		fmt.Print("Enter the name of the CSV file: ")
-		fmt.Scanln(&fileName)
+	if _, err := os.Stat(*csvLocation); os.IsNotExist(err) {
+		fmt.Print("The file does not exist. Please enter the correct file path.")
+		return
 	}
 
 	// Open the CSV file
-	file, err := os.Open(fileName)
+	file, err := os.Open(*csvLocation)
 	if err != nil {
 		fmt.Printf("Error opening CSV file: %s\n", err)
 		return
@@ -71,7 +97,7 @@ func main() {
 	}
 
 	// Create the "audio" directory if it doesn't exist
-	audioDir := "audio"
+	audioDir := strings.ToLower(*outputFolder)
 	if _, err := os.Stat(audioDir); os.IsNotExist(err) {
 		err := os.Mkdir(audioDir, 0755)
 		if err != nil {
@@ -101,7 +127,7 @@ func main() {
 			defer wg.Done()
 
 			// Perform TTS and save to disk
-			audioPath := filepath.Join(audioDir, fmt.Sprintf("%s.mp3", label))
+			audioPath := filepath.Join(audioDir, fmt.Sprintf("%s.%s", label, *dgFileFormat))
 			err := generateTTSAndSave(ctx, dg, script, options, audioPath)
 			if err != nil {
 				fmt.Printf("Could not generate TTS for row %v - %v: %v\n", i, label, err)
