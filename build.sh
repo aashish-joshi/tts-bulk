@@ -10,10 +10,12 @@ if [[ -z "$package" ]]; then
 fi
 package_split=(${package//\// })
 package_name=${package_split[-1]}
+# Remove the .go extension from the final package name
+final_name=(${package_name//\.go/ })
 build_dir='builds'
 platforms=("linux/amd64" "windows/amd64" "darwin/amd64")
 
-# Check if the build_dir is empty. If not, ask user if they want to clean it
+# Check if the build_dir is empty. If not, ask user if they want to clean it.
 if [ -d $build_dir ]; then
     read -p "The build directory is not empty. Do you want to clean it? (yes/no): " clean
     if [[ $clean == "yes" ]]; then
@@ -29,7 +31,7 @@ do
     platform_split=(${platform//\// })
     GOOS=${platform_split[0]}
     GOARCH=${platform_split[1]}
-    output_name=$build_dir'/'$package_name'-'$GOOS'-'$GOARCH
+    output_name=$build_dir'/'$GOOS'-'$GOARCH'/'$final_name
     if [ $GOOS = "windows" ]; then
         output_name+='.exe'
     fi    
