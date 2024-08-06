@@ -16,14 +16,6 @@ import (
 	client "github.com/deepgram/deepgram-go-sdk/pkg/client/speak"
 )
 
-func checkDeepgramKey() error {
-	// Check if the Deepgram API key is set
-	if os.Getenv("DEEPGRAM_API_KEY") == "" {
-		return fmt.Errorf("DEEPGRAM_API_KEY environment variable is not set")
-	}
-	return nil
-}
-
 func main() {
 
 	var dgContainer, dgEncoding string
@@ -97,13 +89,10 @@ func main() {
 	}
 
 	// Create the "audio" directory if it doesn't exist
-	audioDir := strings.ToLower(*outputFolder)
-	if _, err := os.Stat(audioDir); os.IsNotExist(err) {
-		err := os.Mkdir(audioDir, 0755)
-		if err != nil {
-			fmt.Printf("Could not create directory: %s\n", err)
-			return
-		}
+	audioDir, dirErr := setupAudioDir(*outputFolder)
+	if dirErr != nil {
+		fmt.Println("Error creating audio output directory:", dirErr)
+		return
 	}
 
 	// Limit the number of concurrently running goroutines
