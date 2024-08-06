@@ -20,7 +20,7 @@ The following flags are supported at the moment.
 - `-format`: The format of the audio file. Supported formats are `wav` and `mp3`. Default is `mp3`.
 - `-output`: The output directory where the audio files will be saved. Default is `audio/`.
 - `-csv`: The path to the CSV file. Default is `scripts.csv`.
-- `-output`: The output directory where the audio files will be saved. Default is `audio/`.
+- `-model`: The model name to be used for TTS. Defaults to `aura-asteria-en`. View the available models [here](https://developers.deepgram.com/docs/tts-models).
 
 ### Example
 
