@@ -27,13 +27,13 @@ Use custom model and output settings:
   -output=examples/output
 ```
 
-## Large Batch Example
+## Verbose Logging Example
 
-Process a large number of scripts efficiently:
+See detailed processing information:
 
 ```bash
-# The tool automatically manages concurrency
-./tts-bulk -csv=examples/large-batch.csv -verbose
+# Enable verbose logging to see debug information
+./tts-bulk -csv=examples/basic-example.csv -verbose
 ```
 
 ## Programmatic Usage
@@ -200,5 +200,4 @@ func main() {
 
 - `basic-example.csv`: Simple CSV with a few entries
 - `custom-config.csv`: Example with varied content types
-- `large-batch.csv`: Larger dataset for performance testing
 - `README.md`: This file
