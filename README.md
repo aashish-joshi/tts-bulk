@@ -149,9 +149,11 @@ tts-bulk/
 
 ## Adding a New Provider
 
-The modular architecture makes it easy to add support for new TTS providers:
+The modular architecture makes it easy to add support for new TTS providers. See the detailed guide in [docs/ADDING_PROVIDERS.md](docs/ADDING_PROVIDERS.md).
 
-1. Create a new package under `internal/provider/`
+**Quick Overview:**
+
+1. Create a new package under `internal/provider/yourprovider`
 2. Implement the `types.Provider` interface:
    ```go
    type Provider interface {
@@ -160,11 +162,48 @@ The modular architecture makes it easy to add support for new TTS providers:
        Close() error
    }
    ```
-3. Add configuration support
-4. Update the factory pattern
-5. Add tests
+3. Add configuration support and update `cmd/tts-bulk/main.go`
+4. Add tests and documentation
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed instructions.
+**Reference Implementation:** See `internal/provider/deepgram/` for a complete example.
+
+For detailed step-by-step instructions, examples, and best practices, see [docs/ADDING_PROVIDERS.md](docs/ADDING_PROVIDERS.md).
+
+## Using as a Go Module
+
+TTS Bulk can be used as a library in your Go applications. See the detailed guide in [docs/USAGE.md](docs/USAGE.md).
+
+**Quick Example:**
+
+```go
+import (
+    "context"
+    "github.com/aashish-joshi/tts-bulk/internal/processor"
+    "github.com/aashish-joshi/tts-bulk/internal/provider/deepgram"
+    "github.com/aashish-joshi/tts-bulk/pkg/types"
+)
+
+// Create provider
+provider, _ := deepgram.New(deepgram.Config{
+    APIKey: "your-key",
+    Model: "aura-asteria-en",
+})
+defer provider.Close()
+
+// Create processor
+proc, _ := processor.New(processor.Config{
+    Provider:      provider,
+    OutputDir:     "audio",
+    AudioFormat:   types.FormatMP3,
+    MaxConcurrent: 3,
+})
+defer proc.Close()
+
+// Process CSV
+results, _ := proc.ProcessCSV(context.Background(), "scripts.csv")
+```
+
+For complete API documentation, examples, and best practices, see [docs/USAGE.md](docs/USAGE.md).
 
 ## Development
 
@@ -244,6 +283,15 @@ chmod 755 audio/
 ## Contributing
 
 Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## Documentation
+
+- **[README.md](README.md)**: Project overview and quick start
+- **[ARCHITECTURE.md](ARCHITECTURE.md)**: Detailed architecture documentation
+- **[CONTRIBUTING.md](CONTRIBUTING.md)**: Contribution guidelines
+- **[docs/USAGE.md](docs/USAGE.md)**: Using TTS Bulk as a Go module
+- **[docs/ADDING_PROVIDERS.md](docs/ADDING_PROVIDERS.md)**: Guide for adding new TTS providers
+- **[examples/](examples/)**: Usage examples and sample CSV files
 
 ## License
 

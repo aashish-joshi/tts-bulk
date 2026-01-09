@@ -1,11 +1,38 @@
-// Package provider defines the TTS provider interface and factory.
+// Package provider defines common types and constants for TTS providers.
+// Each specific provider (e.g., Deepgram) should implement the types.Provider interface
+// defined in pkg/types/types.go.
+//
+// To add a new provider:
+// 1. Create a new package under internal/provider/ (e.g., internal/provider/awspolly)
+// 2. Implement the types.Provider interface
+// 3. Add a New() constructor function that returns the provider
+// 4. Update main.go to support the new provider
+//
+// Example:
+//
+//	package awspolly
+//
+//	import (
+//	    "context"
+//	    "github.com/aashish-joshi/tts-bulk/pkg/types"
+//	)
+//
+//	type Provider struct {
+//	    client *polly.Client
+//	}
+//
+//	func New(apiKey string) (*Provider, error) {
+//	    // Initialize AWS Polly client
+//	    return &Provider{...}, nil
+//	}
+//
+//	func (p *Provider) GenerateAudio(ctx context.Context, req types.TTSRequest, outputPath string) error {
+//	    // Implementation
+//	}
+//
+//	func (p *Provider) Name() string { return "awspolly" }
+//	func (p *Provider) Close() error { return nil }
 package provider
-
-import (
-	"fmt"
-
-	"github.com/aashish-joshi/tts-bulk/pkg/types"
-)
 
 // ProviderType represents the type of TTS provider.
 type ProviderType string
@@ -13,35 +40,5 @@ type ProviderType string
 const (
 	// ProviderDeepgram represents the Deepgram TTS provider.
 	ProviderDeepgram ProviderType = "deepgram"
+	// Add new provider types here as they are implemented
 )
-
-// Config holds configuration for creating a provider.
-type Config struct {
-	Type   ProviderType
-	APIKey string
-	Model  string
-}
-
-// Factory creates TTS providers based on configuration.
-type Factory interface {
-	Create(config Config) (types.Provider, error)
-}
-
-type factory struct{}
-
-// NewFactory creates a new provider factory.
-func NewFactory() Factory {
-	return &factory{}
-}
-
-// Create creates a new TTS provider based on the configuration.
-func (f *factory) Create(config Config) (types.Provider, error) {
-	switch config.Type {
-	case ProviderDeepgram:
-		// Import is handled in the specific provider package
-		// to avoid circular dependencies
-		return nil, fmt.Errorf("provider creation should be done through specific provider package")
-	default:
-		return nil, fmt.Errorf("unsupported provider type: %s", config.Type)
-	}
-}

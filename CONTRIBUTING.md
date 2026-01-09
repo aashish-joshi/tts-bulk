@@ -129,29 +129,21 @@ tts-bulk/
 
 ## Adding a New TTS Provider
 
-To add a new TTS provider, follow these steps:
+To add a new TTS provider, follow the comprehensive guide in [docs/ADDING_PROVIDERS.md](docs/ADDING_PROVIDERS.md).
 
-1. Create a new package under `internal/provider/`:
-   ```bash
-   mkdir -p internal/provider/newprovider
-   ```
+**Quick steps:**
 
-2. Implement the `types.Provider` interface:
-   ```go
-   type Provider interface {
-       GenerateAudio(ctx context.Context, req TTSRequest, outputPath string) error
-       Name() string
-       Close() error
-   }
-   ```
+1. Create a new package under `internal/provider/yourprovider`
+2. Implement the `types.Provider` interface
+3. Add tests for your provider implementation
+4. Update `cmd/tts-bulk/main.go` to support your provider
+5. Update documentation
 
-3. Add configuration support in `internal/config/config.go`
+**Detailed instructions with examples:** See [docs/ADDING_PROVIDERS.md](docs/ADDING_PROVIDERS.md)
 
-4. Update the factory pattern to support your provider
+## Using as a Go Module
 
-5. Add tests for your provider implementation
-
-6. Update documentation
+For information on using TTS Bulk as a library in your Go applications, see [docs/USAGE.md](docs/USAGE.md).
 
 ## Pull Request Process
 
