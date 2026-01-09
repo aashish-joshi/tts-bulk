@@ -32,3 +32,7 @@ tts-bulk
 
 # Audio output directory
 audio/
+
+# Test coverage
+coverage.out
+coverage.html
