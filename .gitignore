@@ -26,3 +26,13 @@ go.work.sum
 
 # Build folder
 builds/
+
+# Main binary
+tts-bulk
+
+# Audio output directory
+audio/
+
+# Test coverage
+coverage.out
+coverage.html
