@@ -97,3 +97,27 @@ New providers implement this interface and are wired in `main.go`. See `docs/ADD
 - Log level constants: `LevelDebug`, `LevelInfo`, etc.
 - Audio format constants: `FormatMP3`, `FormatWAV`.
 - Unexported struct fields for internal state (`.mu`, `.level`, `.logger`).
+
+## Documentation (Markdown)
+
+Codacy enforces markdownlint rules on all `.md` files. Follow these rules when writing or editing documentation:
+
+- **No tabs** (MD010): Use spaces for indentation inside fenced code blocks, not tab characters.
+- **Blank line before lists** (MD032): Always add a blank line before ordered (`1.`) and unordered (`-`, `*`) lists.
+
+Example — correct:
+
+```markdown
+The following formats are supported:
+
+- mp3
+- wav
+```
+
+Example — incorrect (no blank line before list, tabs in code block):
+
+```markdown
+The following formats are supported:
+- mp3
+- wav
+```
