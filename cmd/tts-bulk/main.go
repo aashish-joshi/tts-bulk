@@ -10,7 +10,7 @@ import (
 	"github.com/aashish-joshi/tts-bulk/internal/config"
 	"github.com/aashish-joshi/tts-bulk/internal/logger"
 	"github.com/aashish-joshi/tts-bulk/internal/processor"
-	"github.com/aashish-joshi/tts-bulk/internal/provider/deepgram"
+	"github.com/aashish-joshi/tts-bulk/internal/provider"
 	"github.com/aashish-joshi/tts-bulk/pkg/types"
 )
 
@@ -24,6 +24,10 @@ func main() {
 	format := flag.String("format", "mp3", "Audio format: mp3 or wav (default: mp3)")
 	output := flag.String("output", "audio", "Output directory for audio files (default: audio)")
 	csvPath := flag.String("csv", "scripts.csv", "Path to CSV file (default: scripts.csv)")
+	providerName := flag.String("provider", "", "TTS provider: deepgram or local (default: deepgram, or TTS_PROVIDER env var)")
+	providerURL := flag.String("provider-url", "http://localhost:8000", "Base URL for local/OpenAI-compatible provider (default: http://localhost:8000)")
+	voice := flag.String("voice", "", "Voice for TTS, used by local/OpenAI-compatible provider (e.g. alloy)")
+	rateLimitMs := flag.Int("rate-limit-ms", -1, "Milliseconds to wait between requests (-1 = provider default)")
 	version := flag.Bool("version", false, "Show version information")
 	verbose := flag.Bool("verbose", false, "Enable verbose logging")
 
@@ -40,7 +44,7 @@ func main() {
 		log.Debug("Verbose logging enabled")
 	}
 
-	cfg, err := config.Load(*csvPath, *output, *format, *model)
+	cfg, err := config.Load(*csvPath, *output, *format, *model, *providerName, *providerURL, *voice, *rateLimitMs)
 	if err != nil {
 		log.Error("Configuration error: %v", err)
 		os.Exit(1)
@@ -54,23 +58,17 @@ func run(log *logger.Logger, cfg *config.Config) int {
 	log.Debug("Provider: %s, Model: %s, Format: %s", cfg.ProviderType, cfg.Model, cfg.AudioFormat)
 	log.Debug("CSV: %s, Output: %s", cfg.CSVPath, cfg.OutputDir)
 
-	container, encoding := cfg.GetDeepgramConfig()
-	dgProvider, err := deepgram.New(deepgram.Config{
-		APIKey:    cfg.APIKey,
-		Model:     cfg.Model,
-		Container: container,
-		Encoding:  encoding,
-	})
+	p, err := provider.New(cfg)
 	if err != nil {
 		log.Error("Failed to create provider: %v", err)
 		return 1
 	}
-	defer dgProvider.Close()
+	defer p.Close()
 
-	log.Info("Provider initialized: %s", dgProvider.Name())
+	log.Info("Provider initialized: %s", p.Name())
 
 	proc, err := processor.New(processor.Config{
-		Provider:      dgProvider,
+		Provider:      p,
 		OutputDir:     cfg.OutputDir,
 		AudioFormat:   cfg.AudioFormat,
 		MaxConcurrent: cfg.MaxConcurrent,

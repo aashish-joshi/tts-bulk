@@ -14,7 +14,10 @@ type Config struct {
 	// Provider settings
 	ProviderType string
 	APIKey       string
+	ProviderURL  string
+	Voice        string
 	Model        string
+	RateLimitMs  int
 
 	// Input/Output settings
 	CSVPath     string
@@ -27,12 +30,23 @@ type Config struct {
 }
 
 // Load loads configuration from environment variables and command-line flags.
-func Load(csvPath, outputDir, format, model string) (*Config, error) {
+func Load(csvPath, outputDir, format, model, provider, providerURL, voice string, rateLimitMs int) (*Config, error) {
+	// Provider selection: param → TTS_PROVIDER env var → default "deepgram"
+	if provider == "" {
+		provider = os.Getenv("TTS_PROVIDER")
+	}
+	if provider == "" {
+		provider = "deepgram"
+	}
+
 	cfg := &Config{
-		ProviderType:  "deepgram", // Default provider
+		ProviderType:  provider,
+		ProviderURL:   providerURL,
+		Voice:         voice,
 		CSVPath:       csvPath,
 		OutputDir:     outputDir,
 		Model:         model,
+		RateLimitMs:   rateLimitMs,
 		MaxConcurrent: 3,
 		RetryAttempts: 2,
 	}
@@ -48,10 +62,16 @@ func Load(csvPath, outputDir, format, model string) (*Config, error) {
 		return nil, fmt.Errorf("unsupported audio format: %s (supported: mp3, wav)", format)
 	}
 
-	// Get API key from environment
-	cfg.APIKey = os.Getenv("DEEPGRAM_API_KEY")
-	if cfg.APIKey == "" {
-		return nil, fmt.Errorf("DEEPGRAM_API_KEY environment variable is not set")
+	// Get API key from environment based on provider
+	switch strings.ToLower(provider) {
+	case "deepgram":
+		cfg.APIKey = os.Getenv("DEEPGRAM_API_KEY")
+		if cfg.APIKey == "" {
+			return nil, fmt.Errorf("DEEPGRAM_API_KEY environment variable is not set")
+		}
+	default:
+		// For local/openai-compatible providers the API key is optional
+		cfg.APIKey = os.Getenv("OPENAI_API_KEY")
 	}
 
 	// Validate required fields
@@ -68,12 +88,4 @@ func Load(csvPath, outputDir, format, model string) (*Config, error) {
 	}
 
 	return cfg, nil
-}
-
-// GetDeepgramConfig returns Deepgram-specific configuration.
-func (c *Config) GetDeepgramConfig() (container, encoding string) {
-	if c.AudioFormat == types.FormatWAV {
-		return "wav", "linear16"
-	}
-	return "", "mp3"
 }

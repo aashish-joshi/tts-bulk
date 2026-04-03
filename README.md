@@ -20,6 +20,9 @@ A modern, high-performance bulk text-to-speech (TTS) generator written in Go. Co
 ## Supported Providers
 
 - **Deepgram**: High-quality neural TTS with multiple models and voices
+- **Local / OpenAI-compatible**: Any locally hosted TTS server that implements the
+  OpenAI Speech API (e.g. [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI),
+  [OpenedAI Speech](https://github.com/matatonic/openedai-speech), [AllTalk](https://github.com/erew123/alltalk_tts))
 
 ## Installation
 
@@ -45,6 +48,8 @@ go install github.com/aashish-joshi/tts-bulk/cmd/tts-bulk@latest
 
 ## Quick Start
 
+### Deepgram (cloud)
+
 1. **Get an API key** from [Deepgram](https://www.deepgram.com/) and set it as an environment variable:
 
    ```bash
@@ -63,6 +68,17 @@ go install github.com/aashish-joshi/tts-bulk/cmd/tts-bulk@latest
    ```bash
    ./tts-bulk
    ```
+
+### Local / OpenAI-compatible server (free)
+
+Start your local TTS server (e.g. Kokoro-FastAPI on port 8000), then run:
+
+```bash
+./tts-bulk -provider=local -provider-url=http://localhost:8000 -voice=af_sky -csv=my-scripts.csv
+```
+
+No API key is required for local servers. Set `OPENAI_API_KEY` only if your server
+requires authentication.
 
 Audio files will be generated in the `audio/` directory by default.
 
@@ -92,6 +108,10 @@ Audio files will be generated in the `audio/` directory by default.
 | `-output` | Output directory for audio files | `audio` |
 | `-format` | Audio format (mp3, wav) | `mp3` |
 | `-model` | TTS model name | `aura-asteria-en` |
+| `-provider` | TTS provider: `deepgram` or `local` | `deepgram` (or `TTS_PROVIDER` env var) |
+| `-provider-url` | Base URL for local/OpenAI-compatible provider | `http://localhost:8000` |
+| `-voice` | Voice name for local/OpenAI-compatible provider | provider default |
+| `-rate-limit-ms` | Milliseconds to wait between requests | `-1` (provider default) |
 | `-verbose` | Enable verbose logging | `false` |
 | `-version` | Show version information | - |
 
@@ -132,7 +152,10 @@ tts-bulk/
 │   ├── logger/            # Structured logging
 │   ├── processor/         # Batch processing logic
 │   └── provider/          # TTS provider implementations
-│       └── deepgram/      # Deepgram provider
+│       ├── factory.go     # Provider factory (creates provider from config)
+│       ├── provider.go    # Provider type constants
+│       ├── deepgram/      # Deepgram provider
+│       └── openaispeech/  # Local/OpenAI-compatible provider
 ├── pkg/types/             # Public types and interfaces
 └── Makefile               # Build automation
 ```
