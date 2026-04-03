@@ -129,26 +129,27 @@ func TestNew(t *testing.T) {
 
 **Reference**: See `internal/processor/processor_test.go` for mock provider examples.
 
-### Step 4: Update Main Application
+### Step 4: Register in the Provider Factory
 
-Modify `cmd/tts-bulk/main.go` to support your provider:
+Add your provider to the switch statement in `internal/provider/factory.go`:
 
 ```go
-// Add provider flag
-provider := flag.String("provider", "deepgram", "TTS provider (deepgram, yourprovider)")
-
-// After flag.Parse(), create provider
-var ttsProvider types.Provider
-
-switch *provider {
 case "yourprovider":
- ttsProvider, err = yourprovider.New(yourprovider.Config{
-  APIKey: os.Getenv("YOUR_PROVIDER_API_KEY"),
-  Model:  *model,
- })
-// ... existing cases
-}
+    return yourprovider.New(yourprovider.Config{
+        APIKey: cfg.APIKey,
+        Model:  cfg.Model,
+    })
 ```
+
+Also add a constant in `internal/provider/provider.go`:
+
+```go
+// ProviderYours represents your TTS provider.
+ProviderYours ProviderType = "yourprovider"
+```
+
+That is all that needs to change — the CLI flag (`-provider=yourprovider`) is already
+wired through the factory, so no edits to `main.go` are required.
 
 ### Step 5: Update Documentation
 

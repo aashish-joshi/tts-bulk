@@ -27,9 +27,13 @@ tts-bulk/
 │   │   ├── processor.go       # Main processor logic
 │   │   └── processor_test.go  # Processor tests
 │   └── provider/              # TTS provider abstraction
-│       ├── provider.go        # Provider interface
-│       └── deepgram/          # Deepgram implementation
-│           └── deepgram.go    # Deepgram provider
+│       ├── provider.go        # Provider type constants
+│       ├── factory.go         # Provider factory
+│       ├── deepgram/          # Deepgram implementation
+│       │   └── deepgram.go    # Deepgram provider
+│       └── openaispeech/      # OpenAI-compatible implementation
+│           ├── provider.go    # OpenAI-compatible provider
+│           └── provider_test.go
 ├── pkg/                       # Public library code
 │   └── types/                 # Public types
 │       └── types.go           # Common types and interfaces
@@ -136,14 +140,14 @@ tts-bulk/
 - Testable with mock providers
 - Provider-agnostic business logic
 
-**Implementation**: Deepgram Provider (`internal/provider/deepgram`)
+**Components**:
 
-**Features**:
-
-- Implements the `Provider` interface
-- Handles Deepgram-specific configuration
-- Rate limiting to respect API limits
-- Error wrapping with context
+- `provider.go` — `ProviderType` constants (`deepgram`, `local`, `openai`)
+- `factory.go` — `New(cfg *config.Config) (types.Provider, error)` factory that
+  maps the configured provider name to the correct implementation
+- `deepgram/` — Deepgram cloud provider (uses Deepgram Go SDK)
+- `openaispeech/` — OpenAI-compatible provider for locally hosted TTS servers
+  (uses standard `net/http`; works with Kokoro-FastAPI, OpenedAI Speech, AllTalk, etc.)
 
 ## Data Flow
 
@@ -152,7 +156,8 @@ tts-bulk/
    ↓
 2. Configuration loaded and validated
    ↓
-3. Provider initialized (e.g., Deepgram)
+3. Provider factory selects and initialises provider
+   (deepgram, local/openaispeech, …)
    ↓
 4. Processor created with provider
    ↓
@@ -204,18 +209,12 @@ wg.Wait() // Wait for all goroutines
 
 ### Rate Limiting
 
-Provider implementations include rate limiting:
+Provider implementations include configurable rate limiting:
 
 ```go
-// In Deepgram provider
-func (p *Provider) GenerateAudio(...) error {
-    // Generate audio
-    _, err := p.client.ToSave(...)
-    
-    // Rate limit: 1 second between requests
-    time.Sleep(time.Second)
-    
-    return err
+// Rate limit delay is configurable (0 = none, -1 = provider default)
+if p.rateLimitMs > 0 {
+    time.Sleep(time.Duration(p.rateLimitMs) * time.Millisecond)
 }
 ```
 
@@ -316,28 +315,34 @@ func (m *MockProvider) GenerateAudio(...) error {
    type Provider struct {
        // Provider-specific fields
    }
-   
+
    func (p *Provider) GenerateAudio(...) error {
        // Implementation
    }
-   
+
    func (p *Provider) Name() string {
        return "newprovider"
    }
-   
+
    func (p *Provider) Close() error {
        // Cleanup
    }
    ```
 
-3. **Add configuration support**:
-   Update `internal/config/config.go` to support new provider
+3. **Add a constant in `internal/provider/provider.go`**:
 
-4. **Update factory pattern**:
-   Add provider creation logic in main.go or factory
+   ```go
+   ProviderNew ProviderType = "newprovider"
+   ```
 
-5. **Add tests**:
-   Create `newprovider_test.go` with comprehensive tests
+4. **Register in the factory (`internal/provider/factory.go`)**:
+
+   ```go
+   case string(ProviderNew):
+       return newprovider.New(newprovider.Config{...})
+   ```
+
+5. **Add tests** in `newprovider_test.go`
 
 ### Adding New Features
 

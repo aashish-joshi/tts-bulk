@@ -40,5 +40,8 @@ type ProviderType string
 const (
 	// ProviderDeepgram represents the Deepgram TTS provider.
 	ProviderDeepgram ProviderType = "deepgram"
-	// Add new provider types here as they are implemented
+	// ProviderLocal represents a locally hosted OpenAI-compatible TTS provider.
+	ProviderLocal ProviderType = "local"
+	// ProviderOpenAI is an alias for ProviderLocal (OpenAI-compatible API).
+	ProviderOpenAI ProviderType = "openai"
 )

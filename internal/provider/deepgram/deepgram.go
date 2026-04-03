@@ -14,20 +14,32 @@ import (
 	client "github.com/deepgram/deepgram-go-sdk/pkg/client/speak"
 )
 
+const defaultRateLimitMs = 1000
+
 // Provider implements the TTS provider interface for Deepgram.
 type Provider struct {
-	client  *api.Client
-	apiKey  string
-	model   string
-	options *interfaces.SpeakOptions
+	client      *api.Client
+	apiKey      string
+	model       string
+	options     *interfaces.SpeakOptions
+	rateLimitMs int
 }
 
 // Config holds Deepgram-specific configuration.
 type Config struct {
-	APIKey    string
-	Model     string
-	Container string
-	Encoding  string
+	APIKey      string
+	Model       string
+	Format      string
+	RateLimitMs int
+}
+
+// formatToContainerEncoding maps an audio format string to the Deepgram
+// container and encoding values required by the API.
+func formatToContainerEncoding(format string) (container, encoding string) {
+	if strings.ToLower(format) == "wav" {
+		return "wav", "linear16"
+	}
+	return "", "mp3"
 }
 
 // New creates a new Deepgram TTS provider.
@@ -48,17 +60,25 @@ func New(cfg Config) (*Provider, error) {
 	c := client.NewRESTWithDefaults()
 	dgClient := api.New(c)
 
+	container, encoding := formatToContainerEncoding(cfg.Format)
+
 	options := &interfaces.SpeakOptions{
 		Model:     strings.ToLower(cfg.Model),
-		Container: cfg.Container,
-		Encoding:  cfg.Encoding,
+		Container: container,
+		Encoding:  encoding,
+	}
+
+	rateLimitMs := cfg.RateLimitMs
+	if rateLimitMs < 0 {
+		rateLimitMs = defaultRateLimitMs
 	}
 
 	return &Provider{
-		client:  dgClient,
-		apiKey:  cfg.APIKey,
-		model:   cfg.Model,
-		options: options,
+		client:      dgClient,
+		apiKey:      cfg.APIKey,
+		model:       cfg.Model,
+		options:     options,
+		rateLimitMs: rateLimitMs,
 	}, nil
 }
 
@@ -78,8 +98,10 @@ func (p *Provider) GenerateAudio(ctx context.Context, req types.TTSRequest, outp
 		return fmt.Errorf("failed to generate TTS: %w", err)
 	}
 
-	// Rate limiting: wait 1 second to avoid hitting API limits
-	time.Sleep(time.Second)
+	// Rate limiting
+	if p.rateLimitMs > 0 {
+		time.Sleep(time.Duration(p.rateLimitMs) * time.Millisecond)
+	}
 
 	return nil
 }
