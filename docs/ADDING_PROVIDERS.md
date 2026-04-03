@@ -30,71 +30,71 @@ Create `internal/provider/yourprovider/yourprovider.go`:
 package yourprovider
 
 import (
-	"context"
-	"fmt"
-	"os"
-	
-	"github.com/aashish-joshi/tts-bulk/pkg/types"
+ "context"
+ "fmt"
+ "os"
+ 
+ "github.com/aashish-joshi/tts-bulk/pkg/types"
 )
 
 // Provider implements the TTS provider interface.
 type Provider struct {
-	client  *YourClient
-	apiKey  string
-	model   string
+ client  *YourClient
+ apiKey  string
+ model   string
 }
 
 // Config holds provider-specific configuration.
 type Config struct {
-	APIKey string
-	Model  string
+ APIKey string
+ Model  string
 }
 
 // New creates a new provider instance.
 func New(cfg Config) (*Provider, error) {
-	if cfg.APIKey == "" {
-		return nil, fmt.Errorf("API key is required")
-	}
-	
-	// Initialize your client
-	client := initializeClient(cfg.APIKey)
-	
-	return &Provider{
-		client: client,
-		apiKey: cfg.APIKey,
-		model:  cfg.Model,
-	}, nil
+ if cfg.APIKey == "" {
+  return nil, fmt.Errorf("API key is required")
+ }
+ 
+ // Initialize your client
+ client := initializeClient(cfg.APIKey)
+ 
+ return &Provider{
+  client: client,
+  apiKey: cfg.APIKey,
+  model:  cfg.Model,
+ }, nil
 }
 
 // GenerateAudio generates audio from text and saves it to outputPath.
 func (p *Provider) GenerateAudio(ctx context.Context, req types.TTSRequest, outputPath string) error {
-	// Validate input
-	if req.Text == "" {
-		return fmt.Errorf("text cannot be empty")
-	}
-	
-	// Call your provider's API
-	audioData, err := p.client.Synthesize(ctx, req.Text, p.model)
-	if err != nil {
-		return fmt.Errorf("failed to synthesize: %w", err)
-	}
-	
-	// Save to file
-	if err := os.WriteFile(outputPath, audioData, 0644); err != nil {
-		return fmt.Errorf("failed to write file: %w", err)
-	}
-	
-	return nil
+ // Validate input
+ if req.Text == "" {
+  return fmt.Errorf("text cannot be empty")
+ }
+ 
+ // Call your provider's API
+ audioData, err := p.client.Synthesize(ctx, req.Text, p.model)
+ if err != nil {
+  return fmt.Errorf("failed to synthesize: %w", err)
+ }
+ 
+ // Save to file
+ if err := os.WriteFile(outputPath, audioData, 0644); err != nil {
+  return fmt.Errorf("failed to write file: %w", err)
+ }
+ 
+ return nil
 }
 
 // Name returns the provider's name.
 func (p *Provider) Name() string {
-	return "yourprovider"
+ return "yourprovider"
 }
 
 // Close cleans up resources.
 func (p *Provider) Close() error {
-	return nil
+ return nil
 }
 ```
 
@@ -108,22 +108,22 @@ Create `internal/provider/yourprovider/yourprovider_test.go`:
 package yourprovider
 
 import (
-	"context"
-	"testing"
+ "context"
+ "testing"
 )
 
 func TestNew(t *testing.T) {
-	// Test valid configuration
-	provider, err := New(Config{
-		APIKey: "test-key",
-		Model:  "test-model",
-	})
-	if err != nil {
-		t.Fatalf("New() failed: %v", err)
-	}
-	if provider == nil {
-		t.Fatal("New() returned nil provider")
-	}
+ // Test valid configuration
+ provider, err := New(Config{
+  APIKey: "test-key",
+  Model:  "test-model",
+ })
+ if err != nil {
+  t.Fatalf("New() failed: %v", err)
+ }
+ if provider == nil {
+  t.Fatal("New() returned nil provider")
+ }
 }
 ```
 
@@ -142,10 +142,10 @@ var ttsProvider types.Provider
 
 switch *provider {
 case "yourprovider":
-	ttsProvider, err = yourprovider.New(yourprovider.Config{
-		APIKey: os.Getenv("YOUR_PROVIDER_API_KEY"),
-		Model:  *model,
-	})
+ ttsProvider, err = yourprovider.New(yourprovider.Config{
+  APIKey: os.Getenv("YOUR_PROVIDER_API_KEY"),
+  Model:  *model,
+ })
 // ... existing cases
 }
 ```
@@ -153,6 +153,7 @@ case "yourprovider":
 ### Step 5: Update Documentation
 
 1. **Add to README.md**:
+
    ```markdown
    ## Supported Providers
    - **Deepgram**: High-quality neural TTS
@@ -162,6 +163,7 @@ case "yourprovider":
 2. **Update examples/** if needed
 
 3. **Add environment variable to documentation**:
+
    ```markdown
    export YOUR_PROVIDER_API_KEY=your_key_here
    ```
@@ -183,65 +185,75 @@ All providers must implement this interface from `pkg/types/types.go`:
 
 ```go
 type Provider interface {
-	// GenerateAudio generates audio from text and saves to outputPath
-	GenerateAudio(ctx context.Context, req TTSRequest, outputPath string) error
-	
-	// Name returns the provider's name
-	Name() string
-	
-	// Close cleans up resources
-	Close() error
+ // GenerateAudio generates audio from text and saves to outputPath
+ GenerateAudio(ctx context.Context, req TTSRequest, outputPath string) error
+ 
+ // Name returns the provider's name
+ Name() string
+ 
+ // Close cleans up resources
+ Close() error
 }
 ```
 
 ## Best Practices
 
 ### 1. Error Handling
+
 Always wrap errors with context:
+
 ```go
 return fmt.Errorf("failed to generate audio: %w", err)
 ```
 
 ### 2. Rate Limiting
+
 Respect API rate limits:
+
 ```go
 import "time"
 
 func (p *Provider) GenerateAudio(...) error {
-	// Generate audio
-	err := p.callAPI()
-	
-	// Rate limit
-	time.Sleep(time.Second)
-	
-	return err
+ // Generate audio
+ err := p.callAPI()
+ 
+ // Rate limit
+ time.Sleep(time.Second)
+ 
+ return err
 }
 ```
 
 ### 3. Resource Cleanup
+
 Always clean up in Close():
+
 ```go
 func (p *Provider) Close() error {
-	if p.client != nil {
-		return p.client.Close()
-	}
-	return nil
+ if p.client != nil {
+  return p.client.Close()
+ }
+ return nil
 }
 ```
 
 ### 4. Input Validation
+
 Validate all inputs:
+
 ```go
 if req.Text == "" {
-	return fmt.Errorf("text cannot be empty")
+ return fmt.Errorf("text cannot be empty")
 }
 if outputPath == "" {
-	return fmt.Errorf("output path cannot be empty")
+ return fmt.Errorf("output path cannot be empty")
 }
 ```
 
 ### 5. Logging
+
 Use the internal logger:
+
 ```go
 import "github.com/aashish-joshi/tts-bulk/internal/logger"
 
@@ -263,6 +275,7 @@ The Deepgram provider (`internal/provider/deepgram/`) is a complete, production-
 ## Contributing
 
 Once your provider is ready:
+
 1. Ensure all tests pass
 2. Update documentation
 3. Add examples

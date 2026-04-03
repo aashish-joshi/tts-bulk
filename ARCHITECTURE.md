@@ -3,6 +3,7 @@
 ## Overview
 
 TTS Bulk is designed with a modern, modular Go architecture that emphasizes:
+
 - **Separation of concerns**: Each component has a single responsibility
 - **Interface-based design**: Easy to extend and test
 - **Dependency injection**: Components receive dependencies explicitly
@@ -55,12 +56,14 @@ tts-bulk/
 **Purpose**: Defines public interfaces and types used throughout the application.
 
 **Key Types**:
+
 - `Provider`: Interface that all TTS providers must implement
 - `TTSRequest`: Request structure for TTS generation
 - `TTSResult`: Result structure containing output and errors
 - `AudioFormat`: Enum for supported audio formats
 
 **Design Principles**:
+
 - Public API that can be imported by external packages
 - No dependencies on internal packages
 - Well-documented interfaces for extensibility
@@ -70,12 +73,14 @@ tts-bulk/
 **Purpose**: Centralized configuration management.
 
 **Responsibilities**:
+
 - Load configuration from environment variables
 - Parse and validate command-line flags
 - Provide typed configuration to other components
 - Set sensible defaults
 
 **Design Decisions**:
+
 - Single source of truth for configuration
 - Validation happens at load time
 - Immutable after creation
@@ -85,12 +90,14 @@ tts-bulk/
 **Purpose**: Provides structured logging throughout the application.
 
 **Features**:
+
 - Multiple log levels (Debug, Info, Warn, Error)
 - Thread-safe operations
 - Configurable output destination
 - Consistent format across application
 
 **Design Decisions**:
+
 - Singleton pattern with default instance
 - Level-based filtering
 - No external dependencies
@@ -100,18 +107,21 @@ tts-bulk/
 **Purpose**: Orchestrates batch TTS processing.
 
 **Responsibilities**:
+
 - Read and parse CSV files
 - Manage concurrent processing
 - Track progress and results
 - Handle errors gracefully
 
 **Key Features**:
+
 - Configurable concurrency with semaphore pattern
 - Goroutine-based parallel processing
 - Comprehensive error collection
 - Progress reporting
 
 **Design Decisions**:
+
 - Semaphore for concurrency control
 - WaitGroup for synchronization
 - Non-blocking error collection
@@ -121,6 +131,7 @@ tts-bulk/
 **Purpose**: Abstract TTS provider implementations behind a common interface.
 
 **Benefits**:
+
 - Easy to add new providers
 - Testable with mock providers
 - Provider-agnostic business logic
@@ -128,6 +139,7 @@ tts-bulk/
 **Implementation**: Deepgram Provider (`internal/provider/deepgram`)
 
 **Features**:
+
 - Implements the `Provider` interface
 - Handles Deepgram-specific configuration
 - Rate limiting to respect API limits
@@ -184,6 +196,7 @@ wg.Wait() // Wait for all goroutines
 ```
 
 **Benefits**:
+
 - Controlled parallelism
 - Efficient resource utilization
 - Protection against overwhelming the API
@@ -291,12 +304,14 @@ func (m *MockProvider) GenerateAudio(...) error {
 ### Adding a New Provider
 
 1. **Create provider package**:
+
    ```
    internal/provider/newprovider/
    └── newprovider.go
    ```
 
 2. **Implement Provider interface**:
+
    ```go
    type Provider struct {
        // Provider-specific fields
@@ -356,6 +371,7 @@ The modular design makes it easy to add features:
 ### Scalability
 
 Current architecture supports:
+
 - **Hundreds of concurrent requests**: Adjust `maxConcurrent`
 - **Large CSV files**: Streaming CSV parsing
 - **Long-running jobs**: Graceful shutdown support (future)
@@ -424,6 +440,7 @@ jobs:
 ## Conclusion
 
 The architecture balances simplicity with extensibility. It follows Go best practices and makes it easy to:
+
 - Add new TTS providers
 - Test components in isolation
 - Scale processing capacity

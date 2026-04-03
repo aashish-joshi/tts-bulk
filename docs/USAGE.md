@@ -16,55 +16,55 @@ go get github.com/aashish-joshi/tts-bulk
 package main
 
 import (
-	"context"
-	"log"
-	"os"
+ "context"
+ "log"
+ "os"
 
-	"github.com/aashish-joshi/tts-bulk/internal/processor"
-	"github.com/aashish-joshi/tts-bulk/internal/provider/deepgram"
-	"github.com/aashish-joshi/tts-bulk/pkg/types"
+ "github.com/aashish-joshi/tts-bulk/internal/processor"
+ "github.com/aashish-joshi/tts-bulk/internal/provider/deepgram"
+ "github.com/aashish-joshi/tts-bulk/pkg/types"
 )
 
 func main() {
-	// Create a Deepgram provider
-	provider, err := deepgram.New(deepgram.Config{
-		APIKey:    os.Getenv("DEEPGRAM_API_KEY"),
-		Model:     "aura-asteria-en",
-		Container: "",
-		Encoding:  "mp3",
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer provider.Close()
+ // Create a Deepgram provider
+ provider, err := deepgram.New(deepgram.Config{
+  APIKey:    os.Getenv("DEEPGRAM_API_KEY"),
+  Model:     "aura-asteria-en",
+  Container: "",
+  Encoding:  "mp3",
+ })
+ if err != nil {
+  log.Fatal(err)
+ }
+ defer provider.Close()
 
-	// Create a processor
-	proc, err := processor.New(processor.Config{
-		Provider:      provider,
-		OutputDir:     "audio",
-		AudioFormat:   types.FormatMP3,
-		MaxConcurrent: 3,
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer proc.Close()
+ // Create a processor
+ proc, err := processor.New(processor.Config{
+  Provider:      provider,
+  OutputDir:     "audio",
+  AudioFormat:   types.FormatMP3,
+  MaxConcurrent: 3,
+ })
+ if err != nil {
+  log.Fatal(err)
+ }
+ defer proc.Close()
 
-	// Process a CSV file
-	ctx := context.Background()
-	results, err := proc.ProcessCSV(ctx, "scripts.csv")
-	if err != nil {
-		log.Fatal(err)
-	}
+ // Process a CSV file
+ ctx := context.Background()
+ results, err := proc.ProcessCSV(ctx, "scripts.csv")
+ if err != nil {
+  log.Fatal(err)
+ }
 
-	// Check results
-	for _, result := range results {
-		if result.Error != nil {
-			log.Printf("Failed: %s - %v\n", result.Label, result.Error)
-		} else {
-			log.Printf("Success: %s -> %s\n", result.Label, result.FilePath)
-		}
-	}
+ // Check results
+ for _, result := range results {
+  if result.Error != nil {
+   log.Printf("Failed: %s - %v\n", result.Label, result.Error)
+  } else {
+   log.Printf("Success: %s -> %s\n", result.Label, result.FilePath)
+  }
+ }
 }
 ```
 
@@ -82,10 +82,10 @@ Providers implement the TTS generation logic for different services.
 import "github.com/aashish-joshi/tts-bulk/internal/provider/deepgram"
 
 provider, err := deepgram.New(deepgram.Config{
-	APIKey:    "your-api-key",
-	Model:     "aura-asteria-en",
-	Container: "",        // "" for MP3, "wav" for WAV
-	Encoding:  "mp3",     // "mp3" or "linear16"
+ APIKey:    "your-api-key",
+ Model:     "aura-asteria-en",
+ Container: "",        // "" for MP3, "wav" for WAV
+ Encoding:  "mp3",     // "mp3" or "linear16"
 })
 ```
 
@@ -93,15 +93,15 @@ provider, err := deepgram.New(deepgram.Config{
 
 ```go
 import (
-	"context"
-	"github.com/aashish-joshi/tts-bulk/pkg/types"
+ "context"
+ "github.com/aashish-joshi/tts-bulk/pkg/types"
 )
 
 // Generate a single audio file
 req := types.TTSRequest{
-	Text:   "Hello, world!",
-	Label:  "greeting",
-	Format: "mp3",
+ Text:   "Hello, world!",
+ Label:  "greeting",
+ Format: "mp3",
 }
 
 err := provider.GenerateAudio(context.Background(), req, "output/greeting.mp3")
@@ -117,10 +117,10 @@ The processor handles batch operations and concurrency.
 import "github.com/aashish-joshi/tts-bulk/internal/processor"
 
 proc, err := processor.New(processor.Config{
-	Provider:      provider,        // types.Provider interface
-	OutputDir:     "audio",         // Output directory
-	AudioFormat:   types.FormatMP3, // Audio format
-	MaxConcurrent: 3,               // Max concurrent requests
+ Provider:      provider,        // types.Provider interface
+ OutputDir:     "audio",         // Output directory
+ AudioFormat:   types.FormatMP3, // Audio format
+ MaxConcurrent: 3,               // Max concurrent requests
 })
 ```
 
@@ -142,13 +142,13 @@ CSV format: `"label","text"`
 
 ```go
 for _, result := range results {
-	if result.Error != nil {
-		// Handle error
-		fmt.Printf("Failed: %s - %v\n", result.Label, result.Error)
-	} else {
-		// Success
-		fmt.Printf("Generated: %s\n", result.FilePath)
-	}
+ if result.Error != nil {
+  // Handle error
+  fmt.Printf("Failed: %s - %v\n", result.Label, result.Error)
+ } else {
+  // Success
+  fmt.Printf("Generated: %s\n", result.FilePath)
+ }
 }
 ```
 
@@ -193,25 +193,25 @@ Implement the `types.Provider` interface:
 package main
 
 import (
-	"context"
-	"github.com/aashish-joshi/tts-bulk/pkg/types"
+ "context"
+ "github.com/aashish-joshi/tts-bulk/pkg/types"
 )
 
 type MyProvider struct {
-	apiKey string
+ apiKey string
 }
 
 func (p *MyProvider) GenerateAudio(ctx context.Context, req types.TTSRequest, outputPath string) error {
-	// Your implementation
-	return nil
+ // Your implementation
+ return nil
 }
 
 func (p *MyProvider) Name() string {
-	return "myprovider"
+ return "myprovider"
 }
 
 func (p *MyProvider) Close() error {
-	return nil
+ return nil
 }
 ```
 
@@ -219,21 +219,21 @@ func (p *MyProvider) Close() error {
 
 ```go
 import (
-	"context"
-	"errors"
-	"fmt"
+ "context"
+ "errors"
+ "fmt"
 )
 
 results, err := proc.ProcessCSV(ctx, "scripts.csv")
 
 // Handle processing errors
 if err != nil {
-	if errors.Is(err, context.Canceled) {
-		fmt.Println("Processing was canceled")
-	} else {
-		fmt.Printf("Processing failed: %v\n", err)
-	}
-	return
+ if errors.Is(err, context.Canceled) {
+  fmt.Println("Processing was canceled")
+ } else {
+  fmt.Printf("Processing failed: %v\n", err)
+ }
+ return
 }
 
 // Check individual results
@@ -241,12 +241,12 @@ successCount := 0
 failureCount := 0
 
 for _, result := range results {
-	if result.Error != nil {
-		failureCount++
-		// Log or handle specific failures
-	} else {
-		successCount++
-	}
+ if result.Error != nil {
+  failureCount++
+  // Log or handle specific failures
+ } else {
+  successCount++
+ }
 }
 
 fmt.Printf("Completed: %d success, %d failed\n", successCount, failureCount)
@@ -256,8 +256,8 @@ fmt.Printf("Completed: %d success, %d failed\n", successCount, failureCount)
 
 ```go
 import (
-	"context"
-	"time"
+ "context"
+ "time"
 )
 
 // With timeout
@@ -271,9 +271,9 @@ ctx, cancel := context.WithCancel(context.Background())
 
 // Cancel from another goroutine
 go func() {
-	// Wait for signal
-	<-stopSignal
-	cancel()
+ // Wait for signal
+ <-stopSignal
+ cancel()
 }()
 
 results, err := proc.ProcessCSV(ctx, "scripts.csv")
@@ -284,18 +284,18 @@ results, err := proc.ProcessCSV(ctx, "scripts.csv")
 ```go
 // Lower concurrency for rate-limited APIs
 proc, err := processor.New(processor.Config{
-	Provider:      provider,
-	OutputDir:     "audio",
-	AudioFormat:   types.FormatMP3,
-	MaxConcurrent: 2,  // Only 2 concurrent requests
+ Provider:      provider,
+ OutputDir:     "audio",
+ AudioFormat:   types.FormatMP3,
+ MaxConcurrent: 2,  // Only 2 concurrent requests
 })
 
 // Higher concurrency for faster processing
 proc, err := processor.New(processor.Config{
-	Provider:      provider,
-	OutputDir:     "audio",
-	AudioFormat:   types.FormatMP3,
-	MaxConcurrent: 10, // 10 concurrent requests
+ Provider:      provider,
+ OutputDir:     "audio",
+ AudioFormat:   types.FormatMP3,
+ MaxConcurrent: 10, // 10 concurrent requests
 })
 ```
 
@@ -305,90 +305,90 @@ proc, err := processor.New(processor.Config{
 package main
 
 import (
-	"context"
-	"flag"
-	"fmt"
-	"log"
-	"os"
+ "context"
+ "flag"
+ "fmt"
+ "log"
+ "os"
 
-	"github.com/aashish-joshi/tts-bulk/internal/logger"
-	"github.com/aashish-joshi/tts-bulk/internal/processor"
-	"github.com/aashish-joshi/tts-bulk/internal/provider/deepgram"
-	"github.com/aashish-joshi/tts-bulk/pkg/types"
+ "github.com/aashish-joshi/tts-bulk/internal/logger"
+ "github.com/aashish-joshi/tts-bulk/internal/processor"
+ "github.com/aashish-joshi/tts-bulk/internal/provider/deepgram"
+ "github.com/aashish-joshi/tts-bulk/pkg/types"
 )
 
 func main() {
-	// Parse command-line flags
-	csvPath := flag.String("csv", "scripts.csv", "Path to CSV file")
-	outputDir := flag.String("output", "audio", "Output directory")
-	model := flag.String("model", "aura-asteria-en", "TTS model")
-	verbose := flag.Bool("verbose", false, "Verbose logging")
-	flag.Parse()
+ // Parse command-line flags
+ csvPath := flag.String("csv", "scripts.csv", "Path to CSV file")
+ outputDir := flag.String("output", "audio", "Output directory")
+ model := flag.String("model", "aura-asteria-en", "TTS model")
+ verbose := flag.Bool("verbose", false, "Verbose logging")
+ flag.Parse()
 
-	// Setup logging
-	appLogger := logger.Default()
-	if *verbose {
-		appLogger.SetLevel(logger.LevelDebug)
-	}
+ // Setup logging
+ appLogger := logger.Default()
+ if *verbose {
+  appLogger.SetLevel(logger.LevelDebug)
+ }
 
-	// Get API key
-	apiKey := os.Getenv("DEEPGRAM_API_KEY")
-	if apiKey == "" {
-		log.Fatal("DEEPGRAM_API_KEY environment variable not set")
-	}
+ // Get API key
+ apiKey := os.Getenv("DEEPGRAM_API_KEY")
+ if apiKey == "" {
+  log.Fatal("DEEPGRAM_API_KEY environment variable not set")
+ }
 
-	// Create provider
-	provider, err := deepgram.New(deepgram.Config{
-		APIKey:    apiKey,
-		Model:     *model,
-		Container: "",
-		Encoding:  "mp3",
-	})
-	if err != nil {
-		log.Fatalf("Failed to create provider: %v", err)
-	}
-	defer provider.Close()
+ // Create provider
+ provider, err := deepgram.New(deepgram.Config{
+  APIKey:    apiKey,
+  Model:     *model,
+  Container: "",
+  Encoding:  "mp3",
+ })
+ if err != nil {
+  log.Fatalf("Failed to create provider: %v", err)
+ }
+ defer provider.Close()
 
-	appLogger.Info("Provider initialized: %s", provider.Name())
+ appLogger.Info("Provider initialized: %s", provider.Name())
 
-	// Create processor
-	proc, err := processor.New(processor.Config{
-		Provider:      provider,
-		OutputDir:     *outputDir,
-		AudioFormat:   types.FormatMP3,
-		MaxConcurrent: 3,
-	})
-	if err != nil {
-		log.Fatalf("Failed to create processor: %v", err)
-	}
-	defer proc.Close()
+ // Create processor
+ proc, err := processor.New(processor.Config{
+  Provider:      provider,
+  OutputDir:     *outputDir,
+  AudioFormat:   types.FormatMP3,
+  MaxConcurrent: 3,
+ })
+ if err != nil {
+  log.Fatalf("Failed to create processor: %v", err)
+ }
+ defer proc.Close()
 
-	// Process CSV
-	ctx := context.Background()
-	results, err := proc.ProcessCSV(ctx, *csvPath)
-	if err != nil {
-		log.Fatalf("Processing failed: %v", err)
-	}
+ // Process CSV
+ ctx := context.Background()
+ results, err := proc.ProcessCSV(ctx, *csvPath)
+ if err != nil {
+  log.Fatalf("Processing failed: %v", err)
+ }
 
-	// Report results
-	successCount := 0
-	failureCount := 0
+ // Report results
+ successCount := 0
+ failureCount := 0
 
-	for _, result := range results {
-		if result.Error != nil {
-			failureCount++
-			appLogger.Error("Failed: %s - %v", result.Label, result.Error)
-		} else {
-			successCount++
-			appLogger.Debug("Generated: %s", result.FilePath)
-		}
-	}
+ for _, result := range results {
+  if result.Error != nil {
+   failureCount++
+   appLogger.Error("Failed: %s - %v", result.Label, result.Error)
+  } else {
+   successCount++
+   appLogger.Debug("Generated: %s", result.FilePath)
+  }
+ }
 
-	appLogger.Info("Complete: %d successful, %d failed", successCount, failureCount)
+ appLogger.Info("Complete: %d successful, %d failed", successCount, failureCount)
 
-	if failureCount > 0 {
-		os.Exit(1)
-	}
+ if failureCount > 0 {
+  os.Exit(1)
+ }
 }
 ```
 
@@ -399,31 +399,31 @@ func main() {
 ```go
 // Provider interface
 type Provider interface {
-	GenerateAudio(ctx context.Context, req TTSRequest, outputPath string) error
-	Name() string
-	Close() error
+ GenerateAudio(ctx context.Context, req TTSRequest, outputPath string) error
+ Name() string
+ Close() error
 }
 
 // TTSRequest represents a TTS generation request
 type TTSRequest struct {
-	Text     string
-	Label    string
-	Model    string
-	Format   string
-	Encoding string
+ Text     string
+ Label    string
+ Model    string
+ Format   string
+ Encoding string
 }
 
 // TTSResult represents the result of TTS generation
 type TTSResult struct {
-	Label    string
-	FilePath string
-	Error    error
+ Label    string
+ FilePath string
+ Error    error
 }
 
 // AudioFormat constants
 const (
-	FormatMP3 AudioFormat = "mp3"
-	FormatWAV AudioFormat = "wav"
+ FormatMP3 AudioFormat = "mp3"
+ FormatWAV AudioFormat = "wav"
 )
 ```
 
@@ -465,47 +465,50 @@ func (l *Logger) Error(format string, v ...interface{})
 
 ```go
 import (
-	"context"
-	"testing"
-	"github.com/aashish-joshi/tts-bulk/pkg/types"
+ "context"
+ "testing"
+ "github.com/aashish-joshi/tts-bulk/pkg/types"
 )
 
 type MockProvider struct{}
 
 func (m *MockProvider) GenerateAudio(ctx context.Context, req types.TTSRequest, outputPath string) error {
-	// Mock implementation
-	return nil
+ // Mock implementation
+ return nil
 }
 
 func (m *MockProvider) Name() string {
-	return "mock"
+ return "mock"
 }
 
 func (m *MockProvider) Close() error {
-	return nil
+ return nil
 }
 
 func TestYourFunction(t *testing.T) {
-	provider := &MockProvider{}
-	// Use provider in your tests
+ provider := &MockProvider{}
+ // Use provider in your tests
 }
 ```
 
 ## Best Practices
 
 1. **Always close resources**:
+
    ```go
    defer provider.Close()
    defer proc.Close()
    ```
 
 2. **Use contexts for cancellation**:
+
    ```go
    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
    defer cancel()
    ```
 
 3. **Handle errors properly**:
+
    ```go
    if err != nil {
        return fmt.Errorf("failed to process: %w", err)

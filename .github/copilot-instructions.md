@@ -15,6 +15,7 @@ make clean          # Remove build artifacts
 ```
 
 Run a single test:
+
 ```bash
 go test -v ./internal/config/... -run TestLoad
 go test -v -race ./...                         # All tests with race detector
@@ -61,31 +62,37 @@ New providers implement this interface and are wired in `main.go`. See `docs/ADD
 ## Key Conventions
 
 ### Error Handling
+
 - Wrap errors with context using `fmt.Errorf("...: %w", err)`.
 - Validate eagerly in `config.Load()` — all checks happen at startup.
 - Use result collection (store `err` in `TTSResult.Error`) rather than panicking in goroutines.
 
 ### Logging
+
 - Use package-level functions: `logger.Info("message: %s", val)`, `logger.Error("failed: %v", err)`.
 - Levels: Debug (verbose flag), Info, Warn, Error — configured globally, not per call-site.
 - Format: `[HH:MM:SS] [LEVEL] message`. Never log API keys.
 
 ### Concurrency
+
 - Semaphore pattern via buffered channel: `sem := make(chan struct{}, maxConcurrent)`.
 - Goroutines acquire with `sem <- struct{}{}` and release with `defer func() { <-sem }()`.
 - `sync.WaitGroup` for synchronization; results collected into a shared slice (goroutines write to pre-indexed slots).
 
 ### Configuration
+
 - Single source of truth: `config.Load()` — config is immutable after creation.
 - Defaults: provider=deepgram, format=mp3, output=audio, model=aura-asteria-en, maxConcurrent=3.
 - `config.Config.GetDeepgramConfig()` maps user-facing format string to Deepgram container/encoding.
 
 ### Tests
+
 - Table-driven tests with `[]struct{ name, input, want, wantErr }`.
 - Mock providers implement `types.Provider`; use `t.TempDir()` for file I/O.
 - Tests live alongside source as `*_test.go` files.
 
 ### Naming
+
 - Interfaces: short and minimal (`Provider`).
 - Log level constants: `LevelDebug`, `LevelInfo`, etc.
 - Audio format constants: `FormatMP3`, `FormatWAV`.

@@ -46,17 +46,20 @@ go install github.com/aashish-joshi/tts-bulk/cmd/tts-bulk@latest
 ## Quick Start
 
 1. **Get an API key** from [Deepgram](https://www.deepgram.com/) and set it as an environment variable:
+
    ```bash
    export DEEPGRAM_API_KEY=your_api_key_here
    ```
 
 2. **Create a CSV file** with your scripts (see `sample-scripts.csv` for an example):
+
    ```csv
    "hello-world","Hello World, how are you doing?"
    "greeting","Welcome to TTS Bulk Generator!"
    ```
 
 3. **Run the tool**:
+
    ```bash
    ./tts-bulk
    ```
@@ -95,10 +98,12 @@ Audio files will be generated in the `audio/` directory by default.
 ### CSV File Format
 
 The CSV file should have two columns:
+
 1. **Label**: Used as the filename for the generated audio
 2. **Script**: The text to convert to speech
 
 Example:
+
 ```csv
 "intro","Welcome to our application"
 "tutorial-step1","First, click on the settings button"
@@ -155,6 +160,7 @@ The modular architecture makes it easy to add support for new TTS providers. See
 
 1. Create a new package under `internal/provider/yourprovider`
 2. Implement the `types.Provider` interface:
+
    ```go
    type Provider interface {
        GenerateAudio(ctx context.Context, req TTSRequest, outputPath string) error
@@ -162,6 +168,7 @@ The modular architecture makes it easy to add support for new TTS providers. See
        Close() error
    }
    ```
+
 3. Add configuration support and update `cmd/tts-bulk/main.go`
 4. Add tests and documentation
 
@@ -262,6 +269,7 @@ go test -race ./...
 ### API Key Issues
 
 If you see `DEEPGRAM_API_KEY environment variable is not set`:
+
 ```bash
 export DEEPGRAM_API_KEY=your_key_here
 ```
@@ -269,6 +277,7 @@ export DEEPGRAM_API_KEY=your_key_here
 ### File Not Found
 
 Ensure your CSV file exists:
+
 ```bash
 ls -la scripts.csv
 ```
@@ -276,6 +285,7 @@ ls -la scripts.csv
 ### Permission Errors
 
 Make sure the output directory is writable:
+
 ```bash
 chmod 755 audio/
 ```
